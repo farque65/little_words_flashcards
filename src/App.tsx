@@ -3,6 +3,13 @@ import type { PointerEvent } from 'react';
 import type { WordCard, WordCollection } from './types';
 import { useSpeech } from './useSpeech';
 
+function CardPicture({ item }: { item: WordCard }) {
+  const [failed, setFailed] = useState(false);
+  return item.image && !failed
+    ? <img id="image" src={item.image} alt={item.word} draggable={false} decoding="async" onError={() => setFailed(true)} />
+    : <span className="picture" aria-hidden="true">{item.picture || '✿'}</span>;
+}
+
 const colors = ['#fff1cc', '#e4f3fc', '#fce7de', '#e9edf9', '#e5f3df'];
 export default function App() {
   const [data, setData] = useState<WordCollection | null>(null);
@@ -113,7 +120,7 @@ export default function App() {
       <div className="flex justify-end mb-2.5 fullscreen-tools"><button ref={enterButton} hidden={fullMode} disabled={!item} aria-pressed={fullMode} onClick={enterFullScreen}>⛶ &nbsp; Full screen</button><button ref={exitButton} hidden={!fullMode} onClick={exitFullScreen} aria-label="Exit full screen">✕ &nbsp; Close</button></div>
       <div className="card-top flex justify-between"><span>{item?.category || 'First words'}</span><span>{item ? `${index + 1} / ${deck.length}` : ''}</span></div>
       <button ref={flashcard} className={`flashcard ${speaking ? 'speaking' : ''} ${drag ? 'dragging' : ''}`} disabled={!item} style={{ background: colors[index % colors.length], transform: drag ? `translateX(${Math.max(-120, Math.min(120, drag)) * 0.45}px) rotate(${drag * 0.015}deg)` : undefined }} aria-label={item ? `Hear ${item.word}` : 'Loading cards'} onClick={() => { if (performance.now() >= suppressClickUntil.current) void hear(); }} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={e => pointerEnd(e)} onPointerCancel={e => pointerEnd(e, true)}>
-        {item?.image ? <img id="image" src={item.image} alt={item.word} /> : <span className="picture" aria-hidden="true">{item?.picture || '✿'}</span>}
+        {item ? <CardPicture key={item.id} item={item} /> : <span className="picture" aria-hidden="true">✿</span>}
         <span id="word">{item?.word || (loadError ? 'Try again' : 'Loading…')}</span><span className="tap">◖)) &nbsp; Tap to hear</span>
       </button>
       <div id="segments" className="flex flex-wrap justify-center gap-2.5 text-center" aria-live="polite">{segmentsVisible && item?.sounds.map((s, i) => <span key={`${s.label}-${i}`} className={activeSegment === i ? 'speaking' : ''}>{s.label}</span>)}</div>
